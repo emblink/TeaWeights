@@ -10,10 +10,7 @@ static struct {
 	GPIO_TypeDef *portBase;
 	GPIO_Pin_TypeDef pin;
 } LcdPinMap[] = {
-	// [LcdPinReadWrite] = {.portBase = , pin = },
-	[LcdPinRegisterSelect] = {.portBase = GPIOC, .pin = GPIO_PIN_5},
-	[LcdPinEnable] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
-	[LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
+    [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
 	[LcdPinDB1] = {.portBase = GPIOD, .pin = GPIO_PIN_1},
 	[LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
 	[LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},
@@ -21,6 +18,9 @@ static struct {
 	[LcdPinDB5] = {.portBase = GPIOD, .pin = GPIO_PIN_5},
 	[LcdPinDB6] = {.portBase = GPIOD, .pin = GPIO_PIN_6},
 	[LcdPinDB7] = {.portBase = GPIOC, .pin = GPIO_PIN_7},
+    [LcdPinReadWrite] = {.portBase = GPIOC, .pin = GPIO_PIN_3},
+	[LcdPinRegisterSelect] = {.portBase = GPIOC, .pin = GPIO_PIN_5},
+	[LcdPinEnable] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
 };
 
 static volatile uint16_t timeTick = 0;
@@ -128,17 +128,19 @@ int main( void )
     GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_SLOW);
 
 	LcdHandle lcdHandle = {
-		.mode = LcdMode8Bit,
+		.mode = LcdInterface8Bit,
 		.pinWriteCb = lcdPinWriteCallback,
 		.pinReadCb = lcdPinReadCallback,
 		.pinConfigCb = lcdPinConfigCallback,
 		.delayCb = delayUs
 	};
 
+    /* Wait for more than 40 ms after VCC rises to 2.7 V */
+    delayMs(50);
     lcdInit(&lcdHandle);
-    /* wait lcd init */
-    delayMs(30);
-	// lcdPringChar(48, 0, 0);
+    lcdTurnOff();
+    // lcdCursorBlinkOn();
+    // while(lcdCheckBusyFlag() == LcdErrBusy) { }
 
     while (1) {
         GPIO_WriteReverse(GPIOB, GPIO_PIN_5);

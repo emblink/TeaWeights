@@ -16,10 +16,7 @@ typedef enum {
 } LcdPinState;
 
 typedef enum {
-    LcdPinReadWrite = 0U,
-    LcdPinRegisterSelect,
-    LcdPinEnable,
-    LcdPinDB0,
+    LcdPinDB0 = 0,
     LcdPinDB1,
     LcdPinDB2,
     LcdPinDB3,
@@ -27,6 +24,9 @@ typedef enum {
     LcdPinDB5,
     LcdPinDB6,
     LcdPinDB7,
+    LcdPinReadWrite,
+    LcdPinRegisterSelect,
+    LcdPinEnable,
     LcdPinCount
 } LcdPin;
 
@@ -37,14 +37,20 @@ typedef enum {
 } LcdPinDirection;
 
 typedef enum {
-    LcdMode4Bit,
-    LcdMode8Bit,
-    LcdModeCount
-} LcdMode;
+    LcdInterface4Bit,
+    LcdInterface8Bit,
+    LcdInterfaceCount
+} LcdInterface;
 
 typedef enum {
-    LcdMoveDirectionRight,
+    LcdFontType5x8,
+    LcdFontType5x11,
+    LcdFontTypeCount
+} LcdFontType;
+
+typedef enum {
     LcdMoveDirectionLeft,
+    LcdMoveDirectionRight,
     LcdMoveDirectionCount
 } LcdMoveDirection;
 
@@ -54,7 +60,7 @@ typedef LcdErr (* LcdPinConfigCallback)(LcdPin pin, LcdPinDirection);
 typedef void (* LcdDelayUsCallback)(unsigned short us);
 
 typedef struct {
-    LcdMode mode;
+    LcdInterface mode;
     LcdPinWriteCallback pinWriteCb;
     LcdPinReadCallback pinReadCb;
     LcdPinConfigCallback pinConfigCb;
@@ -62,14 +68,26 @@ typedef struct {
 } LcdHandle;
 
 LcdErr lcdInit(LcdHandle *handle);
-LcdErr lcdEnable(void);
-LcdErr lcdDisable(void);
 LcdErr lcdClearScreen(void);
-LcdErr lcdPringChar(unsigned char symbol, unsigned int row, unsigned int position);
-LcdErr lcdPrint(unsigned char text[], unsigned int len);
 LcdErr lcdCursorReturnHome(void);
-LcdErr lcdCursorSetPosition(unsigned int row, unsigned int position);
+LcdErr lcdCursorShiftSet(LcdMoveDirection dir);
+LcdErr lcdShiftOnReadWriteEnable(LcdMoveDirection dir);
+LcdErr lcdShiftOnWriteDisable(void);
+LcdErr lcdTurnOn(void);
+LcdErr lcdTurnOff(void);
+LcdErr lcdCursorOn(void);
+LcdErr lcdCursorOff(void);
 LcdErr lcdCursorBlinkOn(void);
 LcdErr lcdCursorBlinkOff(void);
-LcdErr lcdSetMovingDirection(LcdMoveDirection dir);
-LcdErr lcdShiftDisplay(LcdMoveDirection dir);
+LcdErr lcdCursorShift(LcdMoveDirection dir);
+LcdErr lcdShift(LcdMoveDirection dir);
+LcdErr lcdInterfaceSet(LcdInterface mode);
+LcdErr lcdLineNumberSet(unsigned char linesNumber);
+LcdErr lcdFontTypeSet(LcdFontType font);
+LcdErr lcdCGRAMAddrSet(unsigned char addr);
+LcdErr lcdDDRAMAddrSet(unsigned char addr);
+LcdErr lcdCheckBusyFlag(void);
+LcdErr lcdPringChar(unsigned char symbol, unsigned int row, unsigned int position);
+LcdErr lcdPrint(unsigned char text[], unsigned int len);
+LcdErr lcdCursorPositionSet(unsigned int row, unsigned int position);
+
