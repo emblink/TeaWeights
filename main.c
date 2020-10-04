@@ -11,7 +11,7 @@ static struct {
 	GPIO_Pin_TypeDef pin;
 } LcdPinMap[] = {
     [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
-	[LcdPinDB1] = {.portBase = GPIOD, .pin = GPIO_PIN_1},
+	[LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4}, // PD1 - is swim by default
 	[LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
 	[LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},
 	[LcdPinDB4] = {.portBase = GPIOD, .pin = GPIO_PIN_4},
@@ -72,14 +72,11 @@ static uint16_t getTimeTick(void)
 
 static void delayUs(uint16_t us)
 {
-    			
+    usDelayPassed = 0;
     TIM2_SetCounter(0);
 	TIM2_SetAutoreload(us);
     TIM2_Cmd(ENABLE);
-    while(!usDelayPassed) {
-
-    }
-    usDelayPassed = 0;
+    while(usDelayPassed == 0) { }
 }
 
 static void delayMs(uint16_t ms)
@@ -132,17 +129,20 @@ int main( void )
 		.pinWriteCb = lcdPinWriteCallback,
 		.pinReadCb = lcdPinReadCallback,
 		.pinConfigCb = lcdPinConfigCallback,
-		.delayCb = delayUs
+		.delayUsCb = delayUs
 	};
 
     /* Wait for more than 40 ms after VCC rises to 2.7 V */
     delayMs(50);
     lcdInit(&lcdHandle);
-    lcdTurnOff();
-    // lcdCursorBlinkOn();
-    // while(lcdCheckBusyFlag() == LcdErrBusy) { }
+    
+    unsigned char message[] = "MOY BOY ^_^ :D";
 
     while (1) {
+        lcdPrint(message, sizeof(message) - 1);
+        GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
+        delayMs(500);
+        lcdClearScreen();
         GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
         delayMs(500);
     }
@@ -184,5 +184,4 @@ INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
 {
 	TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
     usDelayPassed = 1;
-    GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
 }

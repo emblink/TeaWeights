@@ -9,87 +9,110 @@
 // #endif // LCD_DEBUG
 
 typedef enum {
-    LcdBitDB0 = 0,
-    LcdBitDB1,
-    LcdBitDB2,
-    LcdBitDB3,
-    LcdBitDB4,
-    LcdBitDB5,
-    LcdBitDB6,
-    LcdBitDB7,
-    LcdBitCount
-} LcdBit;
+    LcdBitPositionDB0 = 0,
+    LcdBitPositionDB1,
+    LcdBitPositionDB2,
+    LcdBitPositionDB3,
+    LcdBitPositionDB4,
+    LcdBitPositionDB5,
+    LcdBitPositionDB6,
+    LcdBitPositionDB7,
+    LcdBitPositionCount
+} LcdBitPosition;
 
-typedef enum {
-    LcdInstructionClearDisplay,
-    LcdInstructionReturnHome,
-    LcdInstructionDisplayShiftRightOnReadWrite,
-    LcdInstructionDisplayShiftLeftOnReadWrite,
-    LcdInstructionDisplayShiftOnReadWriteDisable,
-    LcdInstructionDisplayOn,
-    LcdInstructionDisplayOff,
-    LcdInstructionCursorOn,
-    LcdInstructionCursorOff,
-    LcdInstructionCursorBlinkOn,
-    LcdInstructionCursorBlinkOff,
-    LcdInstructionCursorShiftLeft,
-    LcdInstructionCursorShiftRight,
-    LcdInstructionDisplayShiftLeft,
-    LcdInstructionDisplayShiftRight,
-    LcdInstructionInterfaceSet4Bit,
-    LcdInstructionInterfaceSet8Bit,
-    LcdInstructionOneLineModeSet,
-    LcdInstructionTwoLineModeSet,
-    LcdInstructionOneLineModeFontType5x8,
-    LcdInstructionOneLineModeFontType5x11,
-    LcdInstructionTwoLineModeFontType5x8,
-    LcdInstructionSetCGRAMAddr,
-    LcdInstructionSetDDRAMAddr,
-    LcdInstructionCount
-} LcdInstruction;
+/* Clear display */
+#define LCD_CLEAR_DISPLAY (1 << LcdBitPositionDB0)
 
-static unsigned char instructions[LcdInstructionCount] = {
-    [LcdInstructionClearDisplay] = (1 << LcdBitDB0),
-    [LcdInstructionReturnHome] = (1 << LcdBitDB1),
-    [LcdInstructionDisplayShiftRightOnReadWrite] = (1 << LcdBitDB2) | (1 << LcdBitDB1) | (1 << LcdBitDB0),
-    [LcdInstructionDisplayShiftLeftOnReadWrite] = (1 << LcdBitDB2) | (1 << LcdBitDB0),
-    [LcdInstructionDisplayShiftOnReadWriteDisable] = (1 << LcdBitDB2),
-    [LcdInstructionDisplayOn] = (1 << LcdBitDB3) | (1 << LcdPinDB2),
-    [LcdInstructionDisplayOff] = (1 << LcdBitDB3),
-    [LcdInstructionCursorOn] = (1 << LcdBitDB3) | (1 << LcdBitDB1),
-    [LcdInstructionCursorOff] = (1 << LcdBitDB3),
-    [LcdInstructionCursorBlinkOn] = (1 << LcdBitDB3) | (1 << LcdBitDB0),
-    [LcdInstructionCursorBlinkOff] = (1 << LcdBitDB3),
-    [LcdInstructionCursorShiftLeft] = (1 << LcdBitDB4),
-    [LcdInstructionCursorShiftRight] = (1 << LcdBitDB4) | (1 << LcdBitDB2),
-    [LcdInstructionDisplayShiftLeft] = (1 << LcdBitDB4) | (1 << LcdBitDB3),
-    [LcdInstructionDisplayShiftRight] = (1 << LcdBitDB4) | (1 << LcdBitDB4) | (1 << LcdBitDB2),
-    [LcdInstructionInterfaceSet4Bit] = (1 << LcdBitDB5),
-    [LcdInstructionInterfaceSet8Bit] = (1 << LcdBitDB5) | (1 << LcdBitDB4),
-    [LcdInstructionOneLineModeSet] = (1 << LcdBitDB5),
-    [LcdInstructionTwoLineModeSet] = (1 << LcdBitDB5) | (1 << LcdBitDB3),
-    [LcdInstructionOneLineModeFontType5x8] = (1 << LcdBitDB5),
-    [LcdInstructionOneLineModeFontType5x11] = (1 << LcdBitDB5) | (1 << LcdBitDB2),
-    [LcdInstructionTwoLineModeFontType5x8] = (1 << LcdBitDB5) | (1 << LcdBitDB3),
-    [LcdInstructionSetCGRAMAddr] = (1 << LcdBitDB6),
-    [LcdInstructionSetDDRAMAddr] = (1 << LcdBitDB7),
-};
+/* Return home */
+#define LCD_RETURN_HOME (1 << LcdBitPositionDB1)
+
+/* Entry mode set defines */
+#define LCD_ENTRY_MODE (1 << LcdBitPositionDB2)
+
+#define LCD_ENTRY_MODE_CURSOR_DIRECTION_BIT (LcdBitPositionDB1)
+#define LCD_ENTRY_MODE_CURSOR_DIRECTION_BIT_MASK ~(1 << LCD_ENTRY_MODE_CURSOR_DIRECTION_BIT)
+#define LCD_ENTRY_MODE_CURSOR_DIRECTION_RIGHT (1 << LCD_ENTRY_MODE_CURSOR_DIRECTION_BIT)
+#define LCD_ENTRY_MODE_CURSOR_DIRECTION_LEFT (0)
+
+// Display shift depends on I/D bit, and shift direction is oposite to cursor shift.
+// If display shift enabled, I/D bit needs to be reconfigured also.
+#define LCD_ENTRY_MODE_DISPLAY_SHIFT_BIT (LcdBitPositionDB0)
+#define LCD_ENTRY_MODE_DISPLAY_SHIFT_BIT_MASK ~(1 << LCD_ENTRY_MODE_DISPLAY_SHIFT_BIT)
+#define LCD_ENTRY_MODE_DISPLAY_SHIFT_ENABLE (1 << LCD_ENTRY_MODE_DISPLAY_SHIFT_BIT)
+#define LCD_ENTRY_MODE_DISPLAY_SHIFT_DISABLE (0)
+
+/* Display on/off defines */
+#define LCD_DISPLAY_ON_OFF (1 << LcdBitPositionDB3)
+
+#define LCD_DISPLAY_ON_OFF_BIT (LcdBitPositionDB2)
+#define LCD_DISPLAY_ON_OFF_BIT_MASK ~(1 << LCD_DISPLAY_ON_OFF_BIT)
+#define LCD_DISPLAY_ON_OFF_ENABLE (1 << LCD_DISPLAY_ON_OFF_BIT)
+#define LCD_DISPLAY_ON_OFF_DISABLE (0)
+
+#define LCD_DISPLAY_ON_OFF_CURSOR_BIT (LcdBitPositionDB1)
+#define LCD_DISPLAY_ON_OFF_CURSOR_BIT_MASK ~(1 << LCD_DISPLAY_ON_OFF_CURSOR_BIT)
+#define LCD_DISPLAY_ON_OFF_CURSOR_ENABLE (1 << LCD_DISPLAY_ON_OFF_CURSOR_BIT)
+#define LCD_DISPLAY_ON_OFF_CURSOR_DISABLE (0)
+
+#define LCD_DISPLAY_ON_OFF_BLINK_BIT (LcdBitPositionDB0)
+#define LCD_DISPLAY_ON_OFF_BLINK_BIT_MASK ~(1 << LCD_DISPLAY_ON_OFF_BLINK_BIT)
+#define LCD_DISPLAY_ON_OFF_BLINK_ENABLE (1 << LCD_DISPLAY_ON_OFF_BLINK_BIT)
+#define LCD_DISPLAY_ON_OFF_BLINK_DISABLE (0)
+
+/* Cursor or display shift defines */
+#define LCD_CURSOR_OR_DISPLAY_SHIFT (1 << LcdBitPositionDB4)
+
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_BIT (LcdBitPositionDB3)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_BIT_MASK ~(1 << LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_BIT)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_ENABLE (1 << LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_BIT)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DISPLAY_DISABLE (0)
+
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_BIT (LcdBitPositionDB2)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_BIT_MASK ~(1 << LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_BIT)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_RIGHT (1 << LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_BIT)
+#define LCD_CURSOR_OR_DISPLAY_SHIFT_DIRECTION_LEFT (0)
+
+/* Function Set defines */
+#define LCD_FUNCTION_SET (1 << LcdBitPositionDB5)
+
+#define LCD_FUNCTION_SET_BUS_MODE_BIT (LcdBitPositionDB4)
+#define LCD_FUNCTION_SET_BUS_MODE_BIT_MASK ~(1 << LCD_FUNCTION_SET_BUS_MODE_BIT)
+#define LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE (1 << LCD_FUNCTION_SET_BUS_MODE_BIT)
+#define LCD_FUNCTION_SET_BUS_MODE_4_BIT_MODE (0)
+
+#define LCD_FUNCTION_SET_LINE_NUMBER_BIT (LcdBitPositionDB3)
+#define LCD_FUNCTION_SET_LINE_NUMBER_BIT_MASK ~(1 << LCD_FUNCTION_SET_LINE_NUMBER_BIT)
+#define LCD_FUNCTION_SET_LINE_NUMBER_2_LINE_MODE (1 << LCD_FUNCTION_SET_LINE_NUMBER_BIT)
+#define LCD_FUNCTION_SET_LINE_NUMBER_1_LINE_MODE (0)
+
+#define LCD_FUNCTION_SET_FONT_TYPE_BIT (LcdBitPositionDB2)
+#define LCD_FUNCTION_SET_FONT_TYPE_BIT_MASK ~(1 << LCD_FUNCTION_SET_FONT_TYPE_BIT)
+#define LCD_FUNCTION_SET_FONT_TYPE_5x11 (1 << LCD_FUNCTION_SET_FONT_TYPE_BIT)
+#define LCD_FUNCTION_SET_FONT_TYPE_5x8 (0)
+
+/* Set CGRAM address */
+#define LCD_SET_CGRAM_ADDRESS (1 << LcdBitPositionDB6)
+
+/* Set DDRAM address */
+#define LCD_SET_DDRAM_ADDRESS (1 << LcdBitPositionDB7)
 
 static LcdHandle lcdHandle;
 static void lcdSend(unsigned char data);
 static void lcdSendData(unsigned char data);
-static void lcdSendInstruction(LcdInstruction code);
+static void lcdSendInstruction(unsigned char code);
 static unsigned char lcdRead(void);
-static void lcdReadData(unsigned char *data, unsigned int len);
+static unsigned char lcdReadData(void);
+static unsigned char lcdReadInstruction(void);
 
 static void lcdSend(unsigned char data)
 {
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
-    lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
     for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
-        lcdHandle.pinWriteCb(pin, data & 1 ? LcdPinStateHigh : LcdPinStateLow);
+        lcdHandle.pinWriteCb(pin, (data & 1) ? LcdPinStateHigh : LcdPinStateLow);
         data >>= 1;
     }
+    lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
+    lcdHandle.delayUsCb(1);
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateLow);
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
 }
@@ -102,18 +125,17 @@ static void lcdSendData(unsigned char data)
     lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
 }
 
-static void lcdSendInstruction(LcdInstruction code)
+static void lcdSendInstruction(unsigned char code)
 {
     // Register Select: L:Instruction Input
     lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
-    lcdSend(instructions[code]);
+    lcdSend(code);
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
 }
 
 static unsigned char lcdRead(void)
 {
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
-    lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
     unsigned char data = 0;
     for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
         lcdHandle.pinConfigCb(pin, LcdPinDirectionInput);
@@ -122,26 +144,36 @@ static unsigned char lcdRead(void)
         data = (pinState == LcdPinStateHigh ? 1 : 0) << pin;
         lcdHandle.pinConfigCb(pin, LcdPinDirectionOutput);
     }
+    lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
+    lcdHandle.delayUsCb(1);
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateLow);
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
     return data;
 }
 
-static void lcdReadData(unsigned char *data, unsigned int len)
+static unsigned char lcdReadData(void)
 {
-    for (int i = 0; i < len; i++) {
-        // Register Select: H:Data Input
-        lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
-        data[i] = lcdRead();
-        lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
-    }
+    // Register Select: H:Data Input
+    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
+    unsigned char data = lcdRead();
+    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
+    return data;
+}
+
+static unsigned char lcdReadInstruction(void)
+{
+    // Register Select: H:Data Input
+    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
+    unsigned char data = lcdRead();
+    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
+    return data;
 }
 
 LcdErr lcdInit(LcdHandle *handle)
 {
     if (handle == NULL || handle->mode >= LcdInterfaceCount || handle->pinWriteCb == NULL ||
         handle->pinReadCb == NULL || handle->pinConfigCb == NULL ||
-        handle->delayCb == NULL) {
+        handle->delayUsCb == NULL) {
         LCD_ASSERT(LcdErrParam);
     }
 
@@ -149,27 +181,26 @@ LcdErr lcdInit(LcdHandle *handle)
     lcdHandle.pinWriteCb = handle->pinWriteCb;
     lcdHandle.pinReadCb = handle->pinReadCb;
     lcdHandle.pinConfigCb = handle->pinConfigCb;
-    lcdHandle.delayCb = handle->delayCb;
+    lcdHandle.delayUsCb = handle->delayUsCb;
 
     for (LcdPin pin = LcdPinDB0; pin < LcdPinCount; pin++) {
         lcdHandle.pinConfigCb(pin, LcdPinDirectionOutput);
     }
 
-    lcdSendInstruction(LcdInstructionInterfaceSet8Bit);
-    lcdHandle.delayCb(4100);
-    lcdSendInstruction(LcdInstructionInterfaceSet8Bit);
-    lcdHandle.delayCb(100);
-    lcdSendInstruction(LcdInstructionInterfaceSet8Bit);
+    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+    lcdHandle.delayUsCb(4500);
+    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+    lcdHandle.delayUsCb(150);
+    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdSendInstruction(LcdInstructionTwoLineModeSet);
+    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE | LCD_FUNCTION_SET_LINE_NUMBER_2_LINE_MODE | LCD_FUNCTION_SET_FONT_TYPE_5x8);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdSendInstruction(LcdInstructionDisplayOn);
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_ENABLE | LCD_DISPLAY_ON_OFF_CURSOR_ENABLE | LCD_DISPLAY_ON_OFF_BLINK_ENABLE);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdSendInstruction(LcdInstructionClearDisplay);
+    lcdSendInstruction(LCD_CLEAR_DISPLAY);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdSendInstruction(LcdInstructionClearDisplay);
-    while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdSendInstruction(LcdInstructionDisplayShiftRightOnReadWrite);
+    // lcdSendInstruction(LCD_ENTRY_MODE | LCD_ENTRY_MODE_DISPLAY_SHIFT_DISABLE | LCD_ENTRY_MODE_CURSOR_DIRECTION_RIGHT);
+    lcdSendInstruction(LCD_ENTRY_MODE | LCD_ENTRY_MODE_DISPLAY_SHIFT_DISABLE | LCD_ENTRY_MODE_CURSOR_DIRECTION_LEFT);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
 
     return LcdErrOk;
@@ -177,13 +208,13 @@ LcdErr lcdInit(LcdHandle *handle)
 
 LcdErr lcdClearScreen(void)
 {
-    lcdSendInstruction(LcdInstructionClearDisplay);
+    lcdSendInstruction(LCD_CLEAR_DISPLAY);
     return LcdErrOk;
 }
 
 LcdErr lcdCursorReturnHome(void)
 {
-    lcdSendInstruction(LcdInstructionReturnHome);
+    lcdSendInstruction(LCD_RETURN_HOME);
     return LcdErrOk;
 }
 
@@ -207,37 +238,37 @@ LcdErr lcdShiftOnWriteDisable(void)
 
 LcdErr lcdTurnOn(void)
 {
-    lcdSendInstruction(LcdInstructionDisplayOn);
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_ENABLE);
     return LcdErrOk;
 }
 
 LcdErr lcdTurnOff(void)
 {
-    lcdSendInstruction(LcdInstructionDisplayOff);
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_DISABLE);
     return LcdErrOk;
 }
 
 LcdErr lcdCursorOn(void)
 {
-    lcdSendInstruction(LcdInstructionCursorOn);
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_ENABLE | LCD_DISPLAY_ON_OFF_CURSOR_ENABLE);
     return LcdErrOk;
 }
 
 LcdErr lcdCursorOff(void)
 {
-
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_ENABLE | LCD_DISPLAY_ON_OFF_CURSOR_DISABLE);
     return LcdErrOk;
 }
 
 LcdErr lcdCursorBlinkOn(void)
 {
-    lcdSendInstruction(LcdInstructionCursorOn);
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_ENABLE | LCD_DISPLAY_ON_OFF_BLINK_ENABLE);
     return LcdErrOk;
 }
 
 LcdErr lcdCursorBlinkOff(void)
 {
-
+    lcdSendInstruction(LCD_DISPLAY_ON_OFF | LCD_DISPLAY_ON_OFF_BLINK_DISABLE);
     return LcdErrOk;
 }
 
@@ -261,7 +292,7 @@ LcdErr lcdInterfaceSet(LcdInterface mode)
 
 LcdErr lcdLineNumberSet(unsigned char linesNumber)
 {
-    lcdSendInstruction(linesNumber == 2 ? LcdInstructionTwoLineModeSet : LcdInstructionOneLineModeSet);
+    // lcdSendInstruction(linesNumber == 2 ?  : );
     return LcdErrOk;
 }
 
@@ -273,42 +304,48 @@ LcdErr lcdFontTypeSet(LcdFontType font)
 
 LcdErr lcdCGRAMAddrSet(unsigned char addr)
 {
-
+    lcdSendInstruction(LCD_SET_CGRAM_ADDRESS | (addr & 0x3F));
     return LcdErrOk;
 }
 
 LcdErr lcdDDRAMAddrSet(unsigned char addr)
 {
-
+    lcdSendInstruction(LCD_SET_DDRAM_ADDRESS | (addr & 0x7F));
     return LcdErrOk;
 }
 
 LcdErr lcdCheckBusyFlag(void)
 {
-    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
-    unsigned char data = lcdRead();
-    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
+    unsigned char data = lcdReadInstruction();
     if (data & (1 << LcdPinDB7) == 1) {
         return LcdErrBusy;
     }
     return LcdErrOk;
 }
 
-LcdErr lcdPringChar(unsigned char symbol, unsigned int row, unsigned int position)
+LcdErr lcdPringChar(unsigned char symbol)
 {
-
+    lcdSendData(symbol);
     return LcdErrOk;
 }
 
-LcdErr lcdPrint(unsigned char text[], unsigned int len)
+LcdErr lcdPrint(unsigned char text[], unsigned char len)
 {
-
+    for (unsigned char i = 0; i < len; i++) {
+        lcdCheckBusyFlag();
+        lcdPringChar(text[i]);
+    }
     return LcdErrOk;
 }
 
-LcdErr lcdCursorPositionSet(unsigned int row, unsigned int position)
+LcdErr lcdCursorPositionSet(unsigned char line, unsigned char position)
 {
-
+    if (position >= LCD_MAX_SYMBOLS_IN_ROW || line >= LCD_MAX_ROWS)
+        return LcdErrParam;
+    // one line mode : 00H - 0x4F
+    // two line mode : first line - 0x00 - 0x27, second line 0x40 - 0x67
+    unsigned char addr = position + (line == 1 ? 0x40 : 0x00);
+    lcdDDRAMAddrSet(addr);
     return LcdErrOk;
 }
 

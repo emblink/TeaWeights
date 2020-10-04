@@ -64,14 +64,14 @@ typedef struct {
     LcdPinWriteCallback pinWriteCb;
     LcdPinReadCallback pinReadCb;
     LcdPinConfigCallback pinConfigCb;
-    LcdDelayUsCallback delayCb;
+    LcdDelayUsCallback delayUsCb;
 } LcdHandle;
 
 LcdErr lcdInit(LcdHandle *handle);
 LcdErr lcdClearScreen(void);
 LcdErr lcdCursorReturnHome(void);
 LcdErr lcdCursorShiftSet(LcdMoveDirection dir);
-LcdErr lcdShiftOnReadWriteEnable(LcdMoveDirection dir);
+LcdErr lcdShiftOnWriteEnable(LcdMoveDirection dir);
 LcdErr lcdShiftOnWriteDisable(void);
 LcdErr lcdTurnOn(void);
 LcdErr lcdTurnOff(void);
@@ -87,7 +87,7 @@ LcdErr lcdFontTypeSet(LcdFontType font);
 LcdErr lcdCGRAMAddrSet(unsigned char addr);
 LcdErr lcdDDRAMAddrSet(unsigned char addr);
 LcdErr lcdCheckBusyFlag(void);
-LcdErr lcdPringChar(unsigned char symbol, unsigned int row, unsigned int position);
-LcdErr lcdPrint(unsigned char text[], unsigned int len);
-LcdErr lcdCursorPositionSet(unsigned int row, unsigned int position);
+LcdErr lcdPringChar(unsigned char symbol);
+LcdErr lcdPrint(unsigned char text[], unsigned char len);
+LcdErr lcdCursorPositionSet(unsigned char line, unsigned char position);
 
