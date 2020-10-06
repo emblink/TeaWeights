@@ -16,7 +16,7 @@
                 <debug>1</debug>
                 <option>
                     <name>GenDeviceSelectMenu</name>
-                    <state>STM8S103F2P	STM8S103F2P</state>
+                    <state>STM8S103F3P	STM8S103F3P</state>
                 </option>
                 <option>
                     <name>GenCodeModel</name>
@@ -86,7 +86,7 @@
                 </option>
                 <option>
                     <name>GenHeapSize</name>
-                    <state>0x100</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>

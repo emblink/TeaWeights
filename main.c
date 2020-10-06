@@ -44,8 +44,11 @@ static LcdErr lcdPinReadCallback(LcdPin pin, LcdPinState *state)
 	if (pin >= LcdPinCount || state == NULL)
 		return LcdErrParam;
 
-    *state  = GPIO_ReadInputPin(LcdPinMap[pin].portBase, LcdPinMap[pin].pin) == SET ?
-              LcdPinStateHigh : LcdPinStateLow;
+    if (GPIO_ReadInputPin(LcdPinMap[pin].portBase, LcdPinMap[pin].pin)) {
+        *state = LcdPinStateHigh;
+    } else {
+        *state = LcdPinStateLow;
+    }                
     return LcdErrOk;
 }
 
@@ -125,7 +128,6 @@ int main( void )
     GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_SLOW);
 
 	LcdHandle lcdHandle = {
-		.mode = LcdInterface8Bit,
 		.pinWriteCb = lcdPinWriteCallback,
 		.pinReadCb = lcdPinReadCallback,
 		.pinConfigCb = lcdPinConfigCallback,
@@ -134,14 +136,23 @@ int main( void )
 
     /* Wait for more than 40 ms after VCC rises to 2.7 V */
     delayMs(50);
-    lcdInit(&lcdHandle);
-    
+    lcdInit(&lcdHandle, LcdInterface8Bit, LcdFontType5x8, LcdTwoLineMode);
+    lcdTurnOn();
+    while(lcdCheckBusyFlag() == LcdErrBusy) { }
+    lcdCursorOn();
+    while(lcdCheckBusyFlag() == LcdErrBusy) { }
+    lcdClearScreen();
+    while(lcdCheckBusyFlag() == LcdErrBusy) { }
+
     unsigned char message[] = "MOY BOY ^_^ :D";
 
     while (1) {
-        lcdPrint(message, sizeof(message) - 1);
-        GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
-        delayMs(500);
+        for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
+            lcdPringChar(message[i]);
+            delayMs(150);
+            GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
+        }
+        delayMs(150);
         lcdClearScreen();
         GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
         delayMs(500);

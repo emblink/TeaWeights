@@ -49,10 +49,16 @@ typedef enum {
 } LcdFontType;
 
 typedef enum {
-    LcdMoveDirectionLeft,
-    LcdMoveDirectionRight,
-    LcdMoveDirectionCount
-} LcdMoveDirection;
+    LcdOneLineMode,
+    LcdTwoLineMode,
+    LcdLineModeCount
+} LcdLineMode;
+
+typedef enum {
+    LcdDirectionLeft,
+    LcdDirectionRight,
+    LcdDirectionCount
+} LcdDirection;
 
 typedef LcdErr (* LcdPinWriteCallback)(LcdPin pin, LcdPinState state);
 typedef LcdErr (* LcdPinReadCallback)(LcdPin pin, LcdPinState *state);
@@ -60,33 +66,30 @@ typedef LcdErr (* LcdPinConfigCallback)(LcdPin pin, LcdPinDirection);
 typedef void (* LcdDelayUsCallback)(unsigned short us);
 
 typedef struct {
-    LcdInterface mode;
     LcdPinWriteCallback pinWriteCb;
     LcdPinReadCallback pinReadCb;
     LcdPinConfigCallback pinConfigCb;
     LcdDelayUsCallback delayUsCb;
 } LcdHandle;
 
-LcdErr lcdInit(LcdHandle *handle);
+LcdErr lcdInit(LcdHandle *handle, LcdInterface mode, LcdFontType font, LcdLineMode lineMode);
 LcdErr lcdClearScreen(void);
 LcdErr lcdCursorReturnHome(void);
-LcdErr lcdCursorShiftSet(LcdMoveDirection dir);
-LcdErr lcdShiftOnWriteEnable(LcdMoveDirection dir);
-LcdErr lcdShiftOnWriteDisable(void);
+LcdErr lcdShiftDirectionSet(LcdDirection dir);
+LcdErr lcdDisplayShiftEnable(void);
+LcdErr lcdDisplayShiftDisable(void);
 LcdErr lcdTurnOn(void);
 LcdErr lcdTurnOff(void);
 LcdErr lcdCursorOn(void);
 LcdErr lcdCursorOff(void);
 LcdErr lcdCursorBlinkOn(void);
 LcdErr lcdCursorBlinkOff(void);
-LcdErr lcdCursorShift(LcdMoveDirection dir);
-LcdErr lcdShift(LcdMoveDirection dir);
-LcdErr lcdInterfaceSet(LcdInterface mode);
-LcdErr lcdLineNumberSet(unsigned char linesNumber);
-LcdErr lcdFontTypeSet(LcdFontType font);
+LcdErr lcdCursorShift(LcdDirection dir);
+LcdErr lcdDisplayShift(LcdDirection dir);
 LcdErr lcdCGRAMAddrSet(unsigned char addr);
 LcdErr lcdDDRAMAddrSet(unsigned char addr);
 LcdErr lcdCheckBusyFlag(void);
+LcdErr lcdReadAddressCounter(unsigned char *addressCounter);
 LcdErr lcdPringChar(unsigned char symbol);
 LcdErr lcdPrint(unsigned char text[], unsigned char len);
 LcdErr lcdCursorPositionSet(unsigned char line, unsigned char position);
