@@ -10,17 +10,17 @@ static struct {
 	GPIO_TypeDef *portBase;
 	GPIO_Pin_TypeDef pin;
 } LcdPinMap[] = {
-    [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
-	[LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4}, // PD1 - is swim by default
-	[LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
-	[LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},
-	[LcdPinDB4] = {.portBase = GPIOD, .pin = GPIO_PIN_4},
-	[LcdPinDB5] = {.portBase = GPIOD, .pin = GPIO_PIN_5},
-	[LcdPinDB6] = {.portBase = GPIOD, .pin = GPIO_PIN_6},
+    // [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
+	// [LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4}, // PD1 - is swim by default
+	// [LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
+	// [LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},                                                              
+	[LcdPinDB4] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
+	[LcdPinDB5] = {.portBase = GPIOC, .pin = GPIO_PIN_5},
+	[LcdPinDB6] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
 	[LcdPinDB7] = {.portBase = GPIOC, .pin = GPIO_PIN_7},
-    [LcdPinReadWrite] = {.portBase = GPIOC, .pin = GPIO_PIN_3},
-	[LcdPinRegisterSelect] = {.portBase = GPIOC, .pin = GPIO_PIN_5},
-	[LcdPinEnable] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
+    [LcdPinReadWrite] = {.portBase = GPIOA, .pin = GPIO_PIN_2},
+	[LcdPinRegisterSelect] = {.portBase = GPIOA, .pin = GPIO_PIN_1},
+	[LcdPinEnable] = {.portBase = GPIOA, .pin = GPIO_PIN_3},
 };
 
 static volatile uint16_t timeTick = 0;
@@ -156,7 +156,7 @@ int main( void )
         for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
             lcdPringChar(message[i]);
             GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
-            delayMs(150);
+            delayMs(150); 
         }
         for (unsigned char i = 0; i < 5 - 1; i++) {
             lcdDisplayShift(LcdDirectionLeft);
