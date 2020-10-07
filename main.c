@@ -144,15 +144,23 @@ int main( void )
     lcdClearScreen();
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
 
-    unsigned char message[] = "MOY BOY ^_^ :D";
+    unsigned char message[] = "Msh ^_^ =****";
 
     while (1) {
+        static unsigned char line = 0;
+        line = (line + 1) % 2;
+        lcdCursorPositionSet(line, 2);
         for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
             lcdPringChar(message[i]);
-            delayMs(150);
             GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
+            delayMs(150);
         }
-        delayMs(150);
+        for (unsigned char i = 0; i < 5 - 1; i++) {
+            lcdDisplayShift(LcdDirectionLeft);
+            delayMs(200);
+            lcdDisplayShift(LcdDirectionRight);
+            delayMs(200);
+        }
         lcdClearScreen();
         GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
         delayMs(500);
