@@ -136,10 +136,12 @@ int main( void )
 
     /* Wait for more than 40 ms after VCC rises to 2.7 V */
     delayMs(50);
-    lcdInit(&lcdHandle, LcdInterface8Bit, LcdFontType5x8, LcdTwoLineMode);
+    lcdInit(&lcdHandle, LcdInterface4Bit, LcdFontType5x8, LcdTwoLineMode);
     lcdTurnOn();
+    delayUs(100);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdCursorOn();
+    delayUs(100);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdClearScreen();
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
@@ -150,6 +152,7 @@ int main( void )
         static unsigned char line = 0;
         line = (line + 1) % 2;
         lcdCursorPositionSet(line, 2);
+        while(lcdCheckBusyFlag() == LcdErrBusy) { }
         for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
             lcdPringChar(message[i]);
             GPIO_WriteReverse(GPIOB, GPIO_PIN_5);

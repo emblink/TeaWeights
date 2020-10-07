@@ -113,23 +113,45 @@ typedef struct {
 
 static LcdHandle lcdHandle;
 static LcdConfig lcdConfig = {0};
+static void enablePulse(void);
+static void send4Bits(unsigned char data);
 static void lcdSend(unsigned char data);
 static void lcdSendData(unsigned char data);
 static void lcdSendInstruction(unsigned char code);
+unsigned char read4Bits(void);
 static unsigned char lcdRead(void);
 static unsigned char lcdReadData(void);
 static unsigned char lcdReadInstruction(void);
 
-static void lcdSend(unsigned char data)
+static void enablePulse(void)
 {
-    lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
-    for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
-        lcdHandle.pinWriteCb(pin, (data & 1) ? LcdPinStateHigh : LcdPinStateLow);
-        data >>= 1;
-    }
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
     lcdHandle.delayUsCb(1);
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateLow);
+}
+
+static void send4Bits(unsigned char data)
+{
+    for (LcdPin pin = LcdPinDB4; pin <= LcdPinDB7; pin++) {
+        lcdHandle.pinWriteCb(pin, (data & 1) ? LcdPinStateHigh : LcdPinStateLow);
+        data >>= 1;
+    }
+    enablePulse();
+}
+
+static void lcdSend(unsigned char data)
+{
+    lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
+    if (lcdConfig.LcdFunctionMode & LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE) {
+        for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
+            lcdHandle.pinWriteCb(pin, (data & 1) ? LcdPinStateHigh : LcdPinStateLow);
+            data >>= 1;
+        }
+        enablePulse();
+    } else {
+        send4Bits((data & 0xF0) >> 4);
+        send4Bits(data & 0x0F);
+    }
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
 }
 
@@ -149,24 +171,55 @@ static void lcdSendInstruction(unsigned char code)
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
 }
 
-static unsigned char lcdRead(void)
+unsigned char read4Bits(void)
 {
-    for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
+    for (LcdPin pin = LcdPinDB4; pin <= LcdPinDB7; pin++) {
         lcdHandle.pinConfigCb(pin, LcdPinDirectionInput);
     }
-    lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
+
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
     lcdHandle.delayUsCb(20);
 
     unsigned char data = 0;
-    for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
+    unsigned char shift = 0;
+    for (LcdPin pin = LcdPinDB4; pin <= LcdPinDB7; pin++, shift++) {
         LcdPinState pinState = LcdPinStateLow;
         lcdHandle.pinReadCb(pin, &pinState);
-        data |= (pinState == LcdPinStateHigh ? 1 : 0) << pin;
+        data |= (pinState == LcdPinStateHigh ? 1 : 0) << shift;
         lcdHandle.pinConfigCb(pin, LcdPinDirectionOutput);
     }
 
     lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateLow);
+    return data;
+}
+
+static unsigned char lcdRead(void)
+{
+    lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
+    
+    unsigned char data = 0;
+    if (lcdConfig.LcdFunctionMode & LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE) {
+        for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++) {
+            lcdHandle.pinConfigCb(pin, LcdPinDirectionInput);
+        }
+        lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateHigh);
+        lcdHandle.delayUsCb(20);
+
+        unsigned char shift = 0;
+        for (LcdPin pin = LcdPinDB0; pin <= LcdPinDB7; pin++, shift++) {
+            LcdPinState pinState = LcdPinStateLow;
+            lcdHandle.pinReadCb(pin, &pinState);
+            data |= (pinState == LcdPinStateHigh ? 1 : 0) << shift;
+            lcdHandle.pinConfigCb(pin, LcdPinDirectionOutput);
+        }
+
+        lcdHandle.pinWriteCb(LcdPinEnable, LcdPinStateLow);
+    } else {
+        unsigned char highBist = read4Bits();
+        unsigned char lowBist = read4Bits();
+        data = (highBist << 4) | lowBist;
+    }
+
     lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
     return data;
 }
@@ -223,15 +276,28 @@ LcdErr lcdInit(LcdHandle *handle, LcdInterface mode, LcdFontType font, LcdLineMo
     lcdHandle.pinConfigCb = handle->pinConfigCb;
     lcdHandle.delayUsCb = handle->delayUsCb;
 
-    for (LcdPin pin = LcdPinDB0; pin < LcdPinCount; pin++) {
+    for (LcdPin pin = mode == LcdInterface8Bit ? LcdPinDB0 : LcdPinDB4; pin < LcdPinCount; pin++) {
         lcdHandle.pinConfigCb(pin, LcdPinDirectionOutput);
     }
 
-    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
-    lcdHandle.delayUsCb(4500);
-    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
-    lcdHandle.delayUsCb(150);
-    lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+    if (mode == LcdInterface8Bit) {
+        lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+        lcdHandle.delayUsCb(4500);
+        lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+        lcdHandle.delayUsCb(150);
+        lcdSendInstruction(LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE);
+    } else {
+        lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
+        lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateLow);
+        send4Bits((LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE) >> 4);
+        lcdHandle.delayUsCb(4500);
+        send4Bits((LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE) >> 4);
+        lcdHandle.delayUsCb(150);
+        send4Bits((LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE) >> 4);
+        send4Bits((LCD_FUNCTION_SET | LCD_FUNCTION_SET_BUS_MODE_4_BIT_MODE) >> 4);
+        lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
+        lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
+    }
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdSendInstruction(lcdConfig.LcdFunctionMode);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
