@@ -254,7 +254,7 @@ LcdErr lcdInit(LcdHandle *handle, LcdInterface mode, LcdFontType font, LcdLineMo
     lcdConfig.LcdFunctionMode = LCD_FUNCTION_SET;
 
     if (mode == LcdInterface4Bit) {
-        lcdConfig.LcdFunctionMode |= LCD_FUNCTION_SET_BUS_MODE_4_BIT_MODE; // font , lines, bit width
+        lcdConfig.LcdFunctionMode |= LCD_FUNCTION_SET_BUS_MODE_4_BIT_MODE;
     } else {
         lcdConfig.LcdFunctionMode |= LCD_FUNCTION_SET_BUS_MODE_8_BIT_MODE;
     }

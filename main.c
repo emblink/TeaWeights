@@ -1,4 +1,5 @@
 #include "lcd1602a.h"
+#include "hx711.h"
 #include "stm8s_clk.h"
 #include "stm8s_tim1.h"
 #include "stm8s_tim2.h"
@@ -6,12 +7,13 @@
 
 #define NULL (void *) 0
 
+ // PD1 - is swim by default.
 static struct {
 	GPIO_TypeDef *portBase;
 	GPIO_Pin_TypeDef pin;
 } LcdPinMap[] = {
     // [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
-	// [LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4}, // PD1 - is swim by default
+	// [LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4},
 	// [LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
 	// [LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},                                                              
 	[LcdPinDB4] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
@@ -21,6 +23,14 @@ static struct {
     [LcdPinReadWrite] = {.portBase = GPIOA, .pin = GPIO_PIN_2},
 	[LcdPinRegisterSelect] = {.portBase = GPIOA, .pin = GPIO_PIN_1},
 	[LcdPinEnable] = {.portBase = GPIOA, .pin = GPIO_PIN_3},
+};
+
+static struct {
+	GPIO_TypeDef *portBase;
+	GPIO_Pin_TypeDef pin;
+} hx711PinMap[] = {
+    [Hx711PinClock] = {.portBase = GPIOB, .pin = GPIO_PIN_5},                                                  
+	[Hx711PinData] = {.portBase = GPIOB, .pin = GPIO_PIN_4},
 };
 
 static volatile uint16_t timeTick = 0;
@@ -48,7 +58,7 @@ static LcdErr lcdPinReadCallback(LcdPin pin, LcdPinState *state)
         *state = LcdPinStateHigh;
     } else {
         *state = LcdPinStateLow;
-    }                
+    }
     return LcdErrOk;
 }
 
@@ -63,6 +73,32 @@ static LcdErr lcdPinConfigCallback(LcdPin pin, LcdPinDirection dir)
         GPIO_Init(LcdPinMap[pin].portBase, LcdPinMap[pin].pin, GPIO_MODE_OUT_PP_LOW_SLOW);
     }
     return LcdErrOk;
+}
+
+static Hx711Err hx711PinWriteCallback(Hx711Pin pin, Hx711PinState state)
+{
+	if (pin >= Hx711PinCount || state >= Hx711PinStateCount)
+		return Hx711ErrParam;
+
+    if (state == Hx711PinStateHigh) {
+        GPIO_WriteHigh(hx711PinMap[pin].portBase, hx711PinMap[pin].pin);
+    } else {
+        GPIO_WriteLow(hx711PinMap[pin].portBase, hx711PinMap[pin].pin);
+    }
+    return Hx711ErrOk;
+}
+
+static Hx711Err hx711PinReadCallback(Hx711Pin pin, Hx711PinState *state)
+{
+	if (pin >= Hx711PinCount || state == NULL)
+		return Hx711ErrParam;
+
+    if (GPIO_ReadInputPin(hx711PinMap[pin].portBase, hx711PinMap[pin].pin)) {
+        *state = Hx711PinStateHigh;
+    } else {
+        *state = Hx711PinStateLow;
+    }
+    return Hx711ErrOk;
 }
 
 static uint16_t getTimeTick(void)
@@ -126,6 +162,13 @@ int main( void )
 
     /* Onboard led init */
     GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_SLOW);
+    
+    Hx711Handle hx711Handle = {
+        .pinWriteCb = hx711PinWriteCallback,
+        .pinReadCb = hx711PinReadCallback,
+        .delayUsCb = delayUs
+    };
+    hx711Init(&hx711Handle);
 
 	LcdHandle lcdHandle = {
 		.pinWriteCb = lcdPinWriteCallback,
@@ -146,24 +189,24 @@ int main( void )
     lcdClearScreen();
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
 
-    unsigned char message[] = "Msh ^_^ =****";
+    unsigned char message[] = "Prr... Prr..... ^_^";
 
     while (1) {
         static unsigned char line = 0;
         line = (line + 1) % 2;
-        lcdCursorPositionSet(line, 2);
+        lcdCursorPositionSet(line, 1);
         while(lcdCheckBusyFlag() == LcdErrBusy) { }
         for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
             lcdPringChar(message[i]);
             GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
             delayMs(150); 
         }
-        for (unsigned char i = 0; i < 5 - 1; i++) {
-            lcdDisplayShift(LcdDirectionLeft);
-            delayMs(200);
-            lcdDisplayShift(LcdDirectionRight);
-            delayMs(200);
-        }
+        // for (unsigned char i = 0; i < 5 - 1; i++) {
+        //     lcdDisplayShift(LcdDirectionLeft);
+        //     delayMs(200);
+        //     lcdDisplayShift(LcdDirectionRight);
+        //     delayMs(200);
+        // }
         lcdClearScreen();
         GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
         delayMs(500);

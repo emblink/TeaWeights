@@ -1,42 +1,47 @@
 #ifndef __HX_711_H
 #define __HX_711_H
 
-#include "stdint.h"
-#include "stdbool.h"
+typedef enum {
+    Hx711ErrOk,
+    Hx711ErrBusy,
+    Hx711ErrInit,
+    Hx711ErrParam,
+    Hx711ErrPower,
+    Hx711ErrCount
+} Hx711Err;
 
-typedef enum Hx711Status {
-    Hx711StatusOk,
-    Hx711StatusBusy,
-    Hx711StatusReady,
-    Hx711StatusInitErr,
-    Hx711StatusParamErr,
-    Hx711StatusPowerErr,
-    Hx711StatusCount
-} Hx711Status;
-
-typedef enum Hx711Channel {
+typedef enum {
     Hx711ChannelA128 = 25,
     Hx711ChannelB32 = 26,
     Hx711ChannelA64 = 27,
     Hx711ChannelCount
 } Hx711Channel;
 
-/* These callbacks params can be changed according to used HAL */
-typedef int32_t (*pinReadCallback)(int32_t pin);
-typedef int32_t (*pinWriteCallback)(int32_t pin, uint32_t state);
-typedef void (*delayUsCb)(uint32_t us);
+typedef enum {
+    Hx711PinData,
+    Hx711PinClock,
+    Hx711PinCount,
+} Hx711Pin;
+
+typedef enum {
+    Hx711PinStateLow,
+    Hx711PinStateHigh,
+    Hx711PinStateCount
+} Hx711PinState;
+
+typedef Hx711Err (* Hx711PinWriteCallback)(Hx711Pin pin, Hx711PinState state);
+typedef Hx711Err (* Hx711PinReadCallback)(Hx711Pin pin, Hx711PinState *state);
+typedef void (* Hx711DelayUsCallback)(unsigned short us);
 
 typedef struct Hx711Handle {
-    uint32_t dataPin;
-    uint32_t sclkPin;
-    pinReadCallback readCb;
-    pinWriteCallback writeCb;
-    delayUsCb delayCb;
+    Hx711PinWriteCallback pinWriteCb;
+    Hx711PinReadCallback pinReadCb;
+    Hx711DelayUsCallback delayUsCb;
 } Hx711Handle;
 
-Hx711Status hx711Init(Hx711Handle *handle);
-Hx711Status hx711GetStatus(void);
-Hx711Status hx711ReadChannel(Hx711Channel channel, int32_t *data);
-Hx711Status hx711PowerDown(void);
-Hx711Status hx711PowerUp(void);
+Hx711Err hx711Init(Hx711Handle *handle);
+Hx711Err hx711IsBusy(void);
+Hx711Err hx711ReadChannel(Hx711Channel channel, unsigned char data[3]);
+Hx711Err hx711PowerDown(void);
+Hx711Err hx711PowerUp(void);
 #endif // __HX_711_H
