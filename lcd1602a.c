@@ -1,6 +1,6 @@
 #include "lcd1602a.h"
 
-#define NULL (void *) 0
+#define NULL ((void *) 0)
 
 // #ifdef (LCD_DEBUG && LCD_DEBUG > 0)
 //     #define LCD_ASSERT(err) assert(!(err != LcdErrOk))

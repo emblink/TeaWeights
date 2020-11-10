@@ -4,8 +4,10 @@
 #include "stm8s_tim1.h"
 #include "stm8s_tim2.h"
 #include "stm8s_gpio.h"
+#include <stdbool.h>
 
-#define NULL (void *) 0
+#define NULL ((void *) 0)
+#define MEASUREMENTS_COUNT 50
 
  // PD1 - is swim by default.
 static struct {
@@ -29,8 +31,8 @@ static struct {
 	GPIO_TypeDef *portBase;
 	GPIO_Pin_TypeDef pin;
 } hx711PinMap[] = {
-    [Hx711PinClock] = {.portBase = GPIOB, .pin = GPIO_PIN_5},                                                  
-	[Hx711PinData] = {.portBase = GPIOB, .pin = GPIO_PIN_4},
+    [Hx711PinData] = {.portBase = GPIOD, .pin = GPIO_PIN_4},
+    [Hx711PinClock] = {.portBase = GPIOD, .pin = GPIO_PIN_5},                                                
 };
 
 static volatile uint16_t timeTick = 0;
@@ -126,6 +128,31 @@ static void delayMs(uint16_t ms)
     }
 }
 
+static void printValue(int32_t value)
+{
+    unsigned char len = 0;
+    unsigned char buff[16] = {0};
+    int32_t temp = value < 0 ? -value : value;
+    while (temp) {
+        buff[sizeof(buff) - 1 - len] = temp % 10 + '0';
+        temp /= 10;
+        len++;
+    }
+    if (value < 0) {
+        buff[sizeof(buff) - 1 - len] = '-';
+        len++;
+    }
+    lcdClearScreen();
+    while(lcdCheckBusyFlag() == LcdErrBusy) { }
+    lcdPrint(&buff[sizeof(buff) - len], len);
+}
+
+static bool getSensorData(signed long *data)
+{
+    *data = 0;
+    return hx711ReadChannel(Hx711ChannelA128, data) == Hx711ErrOk ? true : false;
+}
+
 int main( void )
 {
     /* Configure system clock */
@@ -163,10 +190,14 @@ int main( void )
     /* Onboard led init */
     GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_SLOW);
     
+    /* Hx711 pins init */
+    GPIO_Init(hx711PinMap[Hx711PinData].portBase, hx711PinMap[Hx711PinData].pin, GPIO_MODE_IN_PU_NO_IT);
+    GPIO_Init(hx711PinMap[Hx711PinClock].portBase, hx711PinMap[Hx711PinClock].pin, GPIO_MODE_OUT_PP_LOW_SLOW);
     Hx711Handle hx711Handle = {
         .pinWriteCb = hx711PinWriteCallback,
         .pinReadCb = hx711PinReadCallback,
-        .delayUsCb = delayUs
+        .delayUsCb = delayUs,
+        .initChannel = Hx711ChannelA128
     };
     hx711Init(&hx711Handle);
 
@@ -188,28 +219,43 @@ int main( void )
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdClearScreen();
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
+    lcdPrint("Calibration...", 14);
+    while(lcdCheckBusyFlag() == LcdErrBusy) { }
 
-    unsigned char message[] = "Prr... Prr..... ^_^";
+    uint16_t lastTick = 0;
+    signed long scaleOffset = 0;
+    signed long average = 0;
+    int count = 0;
+    
+    while (count < 100) {
+        signed long data = 0;
+        if (getSensorData(&data)) {
+            scaleOffset += data;
+            count++;
+        }
+    }
+    scaleOffset /= count;
+    count = 0;
 
     while (1) {
-        static unsigned char line = 0;
-        line = (line + 1) % 2;
-        lcdCursorPositionSet(line, 1);
-        while(lcdCheckBusyFlag() == LcdErrBusy) { }
-        for (unsigned int i = 0; i < sizeof(message) - 1; i++) {
-            lcdPringChar(message[i]);
-            GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
-            delayMs(150); 
+        if (count < MEASUREMENTS_COUNT) {
+            signed long data = 0;
+            if (getSensorData(&data)) {
+                average += data;
+                count++;
+            }
+        } else {
+            average /= MEASUREMENTS_COUNT;
+            average -= scaleOffset;
+            printValue(average);
+            average = 0;
+            count = 0;
         }
-        // for (unsigned char i = 0; i < 5 - 1; i++) {
-        //     lcdDisplayShift(LcdDirectionLeft);
-        //     delayMs(200);
-        //     lcdDisplayShift(LcdDirectionRight);
-        //     delayMs(200);
-        // }
-        lcdClearScreen();
-        GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
-        delayMs(500);
+        
+        if (getTimeTick() - lastTick > 500) {
+            GPIO_WriteReverse(GPIOB, GPIO_PIN_5);
+            lastTick = getTimeTick();
+        }
     }
 }
 
