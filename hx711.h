@@ -11,7 +11,7 @@ typedef enum {
 } Hx711Err;
 
 typedef enum {
-    Hx711ChannelA128 = 1,
+    Hx711ChannelA128 = 1U,
     Hx711ChannelB32,
     Hx711ChannelA64,
     Hx711ChannelCount

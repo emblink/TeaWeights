@@ -6,7 +6,8 @@ unsigned char isPowerDown = 0;
 
 Hx711Err hx711Init(Hx711Handle *handle)
 {
-    if (handle == NULL || handle->pinReadCb == NULL  || handle->pinWriteCb == NULL || handle->delayUsCb == NULL)
+    if (handle == NULL || handle->pinReadCb == NULL  || handle->pinWriteCb == NULL
+        || handle->delayUsCb == NULL || handle->initChannel >= Hx711ChannelCount)
         return Hx711ErrInit;
     
     hx711Handle.pinReadCb = handle->pinReadCb;
@@ -14,16 +15,9 @@ Hx711Err hx711Init(Hx711Handle *handle)
     hx711Handle.delayUsCb = handle->delayUsCb;
     hx711Handle.initChannel = handle->initChannel;
     // init channel for next measurements
-    Hx711PinState pinState;
-    do {
-        hx711Handle.pinReadCb(Hx711PinData, &pinState);
-    }
-    while (pinState == Hx711PinStateHigh);
-
-    for (unsigned char i = 0; i < 24 + hx711Handle.initChannel; i++) {
-        hx711Handle.pinWriteCb(Hx711PinClock, Hx711PinStateHigh);
-        hx711Handle.pinWriteCb(Hx711PinClock, Hx711PinStateLow);
-    }
+    hx711Handle.pinWriteCb(Hx711PinClock, Hx711PinStateLow);
+    signed long pinState;
+    while (hx711ReadChannel(hx711Handle.initChannel, &pinState) != Hx711ErrOk) {}
     return Hx711ErrOk;
 }
 
@@ -74,10 +68,10 @@ Hx711Err hx711ReadChannel(Hx711Channel nextChannel, signed long *value)
     if (err != Hx711ErrOk)
         return err;
 
-	// Pulse the clock pin 24 times to read the data.
-	((unsigned char *) value)[1] = hx711ReadByte();
-	((unsigned char *) value)[2] = hx711ReadByte();
-	((unsigned char *) value)[3] = hx711ReadByte();
+    // Pulse the clock pin 24 times to read the data.
+    ((unsigned char *) value)[1] = hx711ReadByte();
+    ((unsigned char *) value)[2] = hx711ReadByte();
+    ((unsigned char *) value)[3] = hx711ReadByte();
 
     for (unsigned char i = 0; i < nextChannel; i++) {
         hx711Handle.pinWriteCb(Hx711PinClock, Hx711PinStateHigh);
@@ -89,10 +83,10 @@ Hx711Err hx711ReadChannel(Hx711Channel nextChannel, signed long *value)
     /* if value is negative, fill first byte with 0xFF in order to
     indicate int32_t two's complement negative number */
     if (((unsigned char *) value)[1] & 0x80) {
-		((unsigned char *) value)[0] = 0xFF;
-	} else {
-		((unsigned char *) value)[0] = 0x00;
-	}
+        ((unsigned char *) value)[0] = 0xFF;
+    } else {
+        ((unsigned char *) value)[0] = 0x00;
+    }
 
     return Hx711ErrOk;
 }
