@@ -168,7 +168,7 @@ static void lcdSendInstruction(unsigned char code)
     // Register Select: L:Instruction Input
     lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateLow);
     lcdSend(code);
-    lcdHandle.pinWriteCb(LcdPinReadWrite, LcdPinStateHigh);
+    lcdHandle.pinWriteCb(LcdPinRegisterSelect, LcdPinStateHigh);
 }
 
 unsigned char read4Bits(void)

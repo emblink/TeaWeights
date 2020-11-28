@@ -14,25 +14,21 @@ static struct {
     GPIO_TypeDef *portBase;
     GPIO_Pin_TypeDef pin;
 } LcdPinMap[] = {
-    // [LcdPinDB0] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
-    // [LcdPinDB1] = {.portBase = GPIOB, .pin = GPIO_PIN_4},
-    // [LcdPinDB2] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
-    // [LcdPinDB3] = {.portBase = GPIOD, .pin = GPIO_PIN_3},                                                              
-    [LcdPinDB4] = {.portBase = GPIOC, .pin = GPIO_PIN_4},
-    [LcdPinDB5] = {.portBase = GPIOC, .pin = GPIO_PIN_5},
-    [LcdPinDB6] = {.portBase = GPIOC, .pin = GPIO_PIN_6},
-    [LcdPinDB7] = {.portBase = GPIOC, .pin = GPIO_PIN_7},
-    [LcdPinReadWrite] = {.portBase = GPIOA, .pin = GPIO_PIN_2},
-    [LcdPinRegisterSelect] = {.portBase = GPIOA, .pin = GPIO_PIN_1},
-    [LcdPinEnable] = {.portBase = GPIOA, .pin = GPIO_PIN_3},
+    [LcdPinDB4] = {.portBase = GPIOA, .pin = GPIO_PIN_1},
+    [LcdPinDB5] = {.portBase = GPIOD, .pin = GPIO_PIN_6},
+    [LcdPinDB6] = {.portBase = GPIOD, .pin = GPIO_PIN_5},
+    [LcdPinDB7] = {.portBase = GPIOD, .pin = GPIO_PIN_4},
+    [LcdPinReadWrite] = {.portBase = GPIOD, .pin = GPIO_PIN_1},
+    [LcdPinRegisterSelect] = {.portBase = GPIOA, .pin = GPIO_PIN_3},
+    [LcdPinEnable] = {.portBase = GPIOA, .pin = GPIO_PIN_2},
 };
 
 static struct {
     GPIO_TypeDef *portBase;
     GPIO_Pin_TypeDef pin;
 } hx711PinMap[] = {
-    [Hx711PinData] = {.portBase = GPIOD, .pin = GPIO_PIN_4},
-    [Hx711PinClock] = {.portBase = GPIOD, .pin = GPIO_PIN_5},                                                
+    [Hx711PinData] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
+    [Hx711PinClock] = {.portBase = GPIOD, .pin = GPIO_PIN_3},                                                
 };
 
 static volatile uint16_t timeTick = 0;
