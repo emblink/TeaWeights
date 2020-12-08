@@ -2097,12 +2097,6 @@
             </data>
         </settings>
     </configuration>
-    <group>
-        <name>STM8S_StdPeriph_Driver</name>
-        <file>
-            <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\src\stm8s_gpio.c</name>
-        </file>
-    </group>
     <file>
         <name>$PROJ_DIR$\hx711.c</name>
     </file>
@@ -2125,6 +2119,18 @@
         <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\inc\stm8s_clk.h</name>
     </file>
     <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\src\stm8s_exti.c</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\inc\stm8s_exti.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\src\stm8s_gpio.c</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\inc\stm8s_gpio.h</name>
+    </file>
+    <file>
         <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\src\stm8s_tim1.c</name>
     </file>
     <file>
@@ -2135,5 +2141,11 @@
     </file>
     <file>
         <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\inc\stm8s_tim2.h</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\src\stm8s_wwdg.c</name>
+    </file>
+    <file>
+        <name>$PROJ_DIR$\STM8S_StdPeriph_Driver\inc\stm8s_wwdg.h</name>
     </file>
 </project>

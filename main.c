@@ -4,6 +4,7 @@
 #include "stm8s_tim1.h"
 #include "stm8s_tim2.h"
 #include "stm8s_gpio.h"
+#include "stm8s_wwdg.h"
 #include <stdbool.h>
 
 #define NULL ((void *) 0)
@@ -30,6 +31,11 @@ static struct {
     [Hx711PinData] = {.portBase = GPIOD, .pin = GPIO_PIN_2},
     [Hx711PinClock] = {.portBase = GPIOD, .pin = GPIO_PIN_3},                                                
 };
+
+static struct {
+    GPIO_TypeDef *portBase;
+    GPIO_Pin_TypeDef pin;
+} tareButton = {.portBase = GPIOC, .pin = GPIO_PIN_7};
 
 static volatile uint16_t timeTick = 0;
 static volatile uint8_t usDelayPassed = 0;
@@ -136,8 +142,6 @@ static void printValue(int32_t value)
     } while (temp);
     buff[sizeof(buff) - 1 - len] = value < 0 ? '-' : ' ';
     len++;
-    lcdClearScreen();
-    while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdPrint(&buff[sizeof(buff) - len], len);
 }
 
@@ -184,6 +188,10 @@ int main( void )
     /* Onboard led init */
     GPIO_Init(GPIOB, GPIO_PIN_5, GPIO_MODE_OUT_PP_LOW_SLOW);
     
+    /* Tare button init */
+    GPIO_Init(tareButton.portBase, tareButton.pin, GPIO_MODE_IN_PU_IT);
+    EXTI_SetExtIntSensitivity(EXTI_PORT_GPIOC, EXTI_SENSITIVITY_FALL_ONLY);
+    
     /* Hx711 pins init */
     GPIO_Init(hx711PinMap[Hx711PinData].portBase, hx711PinMap[Hx711PinData].pin, GPIO_MODE_IN_FL_NO_IT);
     GPIO_Init(hx711PinMap[Hx711PinClock].portBase, hx711PinMap[Hx711PinClock].pin, GPIO_MODE_OUT_PP_LOW_FAST);
@@ -208,7 +216,7 @@ int main( void )
     lcdTurnOn();
     delayUs(100);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
-    lcdCursorOn();
+    // lcdCursorOn();
     delayUs(100);
     while(lcdCheckBusyFlag() == LcdErrBusy) { }
     lcdClearScreen();
@@ -243,7 +251,18 @@ int main( void )
         } else {
             average /= MEASUREMENTS_COUNT;
             average -= scaleOffset;
+            lcdClearScreen();
+            while(lcdCheckBusyFlag() == LcdErrBusy) { }
             printValue(average);
+            lcdCursorPositionSet(1, 0);
+            printValue(average / 11750);
+            lcdPringChar(',');
+            signed char decimal = (average % 11750) / 1175;
+            if (decimal < 0) {
+              decimal = -decimal;
+            }
+            lcdPringChar(decimal + '0');
+            lcdPringChar('g');
             average = 0;
             count = 0;
         }
@@ -287,8 +306,23 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
     timeTick++;
 }
 
-INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
+/**
+  * @brief  Timer2 Update/Overflow/Break Interrupt routine
+  * @param  None
+  * @retval None
+  */
+ INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
 {
     TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
     usDelayPassed = 1;
+}
+
+/**
+  * @brief  External Interrupt PORTC Interrupt routine
+  * @param  None
+  * @retval None
+  */
+INTERRUPT_HANDLER(EXTI_PORTC_IRQHandler, 5)
+{
+    WWDG_SWReset();
 }
